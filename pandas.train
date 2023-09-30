@@ -1,0 +1,2046 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Multiple Linear Regression with Dummies - Exercise Solution"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "You are given a real estate dataset. \n",
+    "\n",
+    "Real estate is one of those examples that every regression course goes through as it is extremely easy to understand and there is a (almost always) certain causal relationship to be found.\n",
+    "\n",
+    "The data is located in the file: 'real_estate_price_size_year_view.csv'. \n",
+    "\n",
+    "You are expected to create a multiple linear regression (similar to the one in the lecture), using the new data. \n",
+    "\n",
+    "In this exercise, the dependent variable is 'price', while the independent variables are 'size', 'year', and 'view'.\n",
+    "\n",
+    "#### Regarding the 'view' variable:\n",
+    "There are two options: 'Sea view' and 'No sea view'. You are expected to create a dummy variable for view and include it in the regression\n",
+    "\n",
+    "Good luck!"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Import the relevant libraries"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "import matplotlib.pyplot as plt\n",
+    "import statsmodels.api as sm\n",
+    "import seaborn as sns\n",
+    "sns.set()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Load the data"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "raw_data = pd.read_csv('real_estate_price_size_year_view.csv')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 93,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>price</th>\n",
+       "      <th>size</th>\n",
+       "      <th>year</th>\n",
+       "      <th>view</th>\n",
+       "      <th>new coloumn</th>\n",
+       "      <th>new coloumns</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>234314.144</td>\n",
+       "      <td>643.09</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>No sea view</td>\n",
+       "      <td>2658.09</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>228581.528</td>\n",
+       "      <td>656.22</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>No sea view</td>\n",
+       "      <td>2665.22</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>281626.336</td>\n",
+       "      <td>487.29</td>\n",
+       "      <td>2018</td>\n",
+       "      <td>Sea view</td>\n",
+       "      <td>2505.29</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>401255.608</td>\n",
+       "      <td>1504.75</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>No sea view</td>\n",
+       "      <td>3519.75</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>458674.256</td>\n",
+       "      <td>1275.46</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>Sea view</td>\n",
+       "      <td>3284.46</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "        price     size  year         view  new coloumn  new coloumns\n",
+       "0  234314.144   643.09  2015  No sea view      2658.09            10\n",
+       "1  228581.528   656.22  2009  No sea view      2665.22            10\n",
+       "2  281626.336   487.29  2018     Sea view      2505.29            10\n",
+       "3  401255.608  1504.75  2015  No sea view      3519.75            10\n",
+       "4  458674.256  1275.46  2009     Sea view      3284.46            10"
+      ]
+     },
+     "execution_count": 93,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>price</th>\n",
+       "      <th>size</th>\n",
+       "      <th>year</th>\n",
+       "      <th>view</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>95</th>\n",
+       "      <td>252460.400</td>\n",
+       "      <td>549.80</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>Sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>96</th>\n",
+       "      <td>310522.592</td>\n",
+       "      <td>1037.44</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>97</th>\n",
+       "      <td>383635.568</td>\n",
+       "      <td>1504.75</td>\n",
+       "      <td>2006</td>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>98</th>\n",
+       "      <td>225145.248</td>\n",
+       "      <td>648.29</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>99</th>\n",
+       "      <td>274922.856</td>\n",
+       "      <td>705.29</td>\n",
+       "      <td>2006</td>\n",
+       "      <td>Sea view</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "         price     size  year         view\n",
+       "95  252460.400   549.80  2009     Sea view\n",
+       "96  310522.592  1037.44  2009  No sea view\n",
+       "97  383635.568  1504.75  2006  No sea view\n",
+       "98  225145.248   648.29  2015  No sea view\n",
+       "99  274922.856   705.29  2006     Sea view"
+      ]
+     },
+     "execution_count": 26,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.tail()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>price</th>\n",
+       "      <th>size</th>\n",
+       "      <th>year</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>count</th>\n",
+       "      <td>100.000000</td>\n",
+       "      <td>100.000000</td>\n",
+       "      <td>100.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>mean</th>\n",
+       "      <td>292289.470160</td>\n",
+       "      <td>853.024200</td>\n",
+       "      <td>2012.600000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>std</th>\n",
+       "      <td>77051.727525</td>\n",
+       "      <td>297.941951</td>\n",
+       "      <td>4.729021</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>min</th>\n",
+       "      <td>154282.128000</td>\n",
+       "      <td>479.750000</td>\n",
+       "      <td>2006.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>25%</th>\n",
+       "      <td>234280.148000</td>\n",
+       "      <td>643.330000</td>\n",
+       "      <td>2009.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>50%</th>\n",
+       "      <td>280590.716000</td>\n",
+       "      <td>696.405000</td>\n",
+       "      <td>2015.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>75%</th>\n",
+       "      <td>335723.696000</td>\n",
+       "      <td>1029.322500</td>\n",
+       "      <td>2018.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>max</th>\n",
+       "      <td>500681.128000</td>\n",
+       "      <td>1842.510000</td>\n",
+       "      <td>2018.000000</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "               price         size         year\n",
+       "count     100.000000   100.000000   100.000000\n",
+       "mean   292289.470160   853.024200  2012.600000\n",
+       "std     77051.727525   297.941951     4.729021\n",
+       "min    154282.128000   479.750000  2006.000000\n",
+       "25%    234280.148000   643.330000  2009.000000\n",
+       "50%    280590.716000   696.405000  2015.000000\n",
+       "75%    335723.696000  1029.322500  2018.000000\n",
+       "max    500681.128000  1842.510000  2018.000000"
+      ]
+     },
+     "execution_count": 27,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.describe()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 30,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "tempdict={'col1':[1,2,3] , 'col2':[4,5,6] ,'col3':[7,8,9]}\n",
+    "dictraw_data=pd.DataFrame.from_dict(tempdict) "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 33,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>col1</th>\n",
+       "      <th>col2</th>\n",
+       "      <th>col3</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>4</td>\n",
+       "      <td>7</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2</td>\n",
+       "      <td>5</td>\n",
+       "      <td>8</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>3</td>\n",
+       "      <td>6</td>\n",
+       "      <td>9</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   col1  col2  col3\n",
+       "0     1     4     7\n",
+       "1     2     5     8\n",
+       "2     3     6     9"
+      ]
+     },
+     "execution_count": 33,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "dictraw_data.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 34,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "Index(['price', 'size', 'year', 'view'], dtype='object')"
+      ]
+     },
+     "execution_count": 34,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.columns"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 36,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "price    float64\n",
+       "size     float64\n",
+       "year       int64\n",
+       "view      object\n",
+       "dtype: object"
+      ]
+     },
+     "execution_count": 36,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.dtypes"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 40,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>view</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>count</th>\n",
+       "      <td>100</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>unique</th>\n",
+       "      <td>2</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>top</th>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>freq</th>\n",
+       "      <td>51</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "               view\n",
+       "count           100\n",
+       "unique            2\n",
+       "top     No sea view\n",
+       "freq             51"
+      ]
+     },
+     "execution_count": 40,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.describe(include='object')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 42,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0     234314.144\n",
+       "1     228581.528\n",
+       "2     281626.336\n",
+       "3     401255.608\n",
+       "4     458674.256\n",
+       "         ...    \n",
+       "95    252460.400\n",
+       "96    310522.592\n",
+       "97    383635.568\n",
+       "98    225145.248\n",
+       "99    274922.856\n",
+       "Name: price, Length: 100, dtype: float64"
+      ]
+     },
+     "execution_count": 42,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.price"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 44,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>price</th>\n",
+       "      <th>size</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>234314.144</td>\n",
+       "      <td>643.09</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>228581.528</td>\n",
+       "      <td>656.22</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>281626.336</td>\n",
+       "      <td>487.29</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>401255.608</td>\n",
+       "      <td>1504.75</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>458674.256</td>\n",
+       "      <td>1275.46</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>95</th>\n",
+       "      <td>252460.400</td>\n",
+       "      <td>549.80</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>96</th>\n",
+       "      <td>310522.592</td>\n",
+       "      <td>1037.44</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>97</th>\n",
+       "      <td>383635.568</td>\n",
+       "      <td>1504.75</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>98</th>\n",
+       "      <td>225145.248</td>\n",
+       "      <td>648.29</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>99</th>\n",
+       "      <td>274922.856</td>\n",
+       "      <td>705.29</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>100 rows × 2 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "         price     size\n",
+       "0   234314.144   643.09\n",
+       "1   228581.528   656.22\n",
+       "2   281626.336   487.29\n",
+       "3   401255.608  1504.75\n",
+       "4   458674.256  1275.46\n",
+       "..         ...      ...\n",
+       "95  252460.400   549.80\n",
+       "96  310522.592  1037.44\n",
+       "97  383635.568  1504.75\n",
+       "98  225145.248   648.29\n",
+       "99  274922.856   705.29\n",
+       "\n",
+       "[100 rows x 2 columns]"
+      ]
+     },
+     "execution_count": 44,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data[['price','size']]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 48,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "400"
+      ]
+     },
+     "execution_count": 48,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.size.view()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 80,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>price</th>\n",
+       "      <th>size</th>\n",
+       "      <th>year</th>\n",
+       "      <th>view</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "Empty DataFrame\n",
+       "Columns: [price, size, year, view]\n",
+       "Index: []"
+      ]
+     },
+     "execution_count": 80,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data[raw_data['view'] == 'no']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 55,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>price</th>\n",
+       "      <th>size</th>\n",
+       "      <th>year</th>\n",
+       "      <th>view</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "Empty DataFrame\n",
+       "Columns: [price, size, year, view]\n",
+       "Index: []"
+      ]
+     },
+     "execution_count": 55,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data[(raw_data['view'] == 'yes') &(raw_data ['price']=='yes') ]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 58,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "price    444192.008\n",
+       "size        1300.96\n",
+       "year           2006\n",
+       "view       Sea view\n",
+       "Name: 14, dtype: object"
+      ]
+     },
+     "execution_count": 58,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.iloc[14]\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 61,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>price</th>\n",
+       "      <th>size</th>\n",
+       "      <th>year</th>\n",
+       "      <th>view</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>5</th>\n",
+       "      <td>245050.280</td>\n",
+       "      <td>575.19</td>\n",
+       "      <td>2006</td>\n",
+       "      <td>Sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6</th>\n",
+       "      <td>265129.064</td>\n",
+       "      <td>570.89</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>Sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>7</th>\n",
+       "      <td>175716.480</td>\n",
+       "      <td>620.82</td>\n",
+       "      <td>2006</td>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>8</th>\n",
+       "      <td>331101.344</td>\n",
+       "      <td>682.26</td>\n",
+       "      <td>2018</td>\n",
+       "      <td>Sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9</th>\n",
+       "      <td>218630.608</td>\n",
+       "      <td>694.52</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "        price    size  year         view\n",
+       "5  245050.280  575.19  2006     Sea view\n",
+       "6  265129.064  570.89  2015     Sea view\n",
+       "7  175716.480  620.82  2006  No sea view\n",
+       "8  331101.344  682.26  2018     Sea view\n",
+       "9  218630.608  694.52  2009  No sea view"
+      ]
+     },
+     "execution_count": 61,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.iloc[5:10]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 65,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "view=raw_data.copy()\n",
+    "price.set_index('view' , inplace=True)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 66,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>price</th>\n",
+       "      <th>size</th>\n",
+       "      <th>year</th>\n",
+       "      <th>view</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>234314.144</td>\n",
+       "      <td>643.09</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>228581.528</td>\n",
+       "      <td>656.22</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>281626.336</td>\n",
+       "      <td>487.29</td>\n",
+       "      <td>2018</td>\n",
+       "      <td>Sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>401255.608</td>\n",
+       "      <td>1504.75</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>458674.256</td>\n",
+       "      <td>1275.46</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>Sea view</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "        price     size  year         view\n",
+       "0  234314.144   643.09  2015  No sea view\n",
+       "1  228581.528   656.22  2009  No sea view\n",
+       "2  281626.336   487.29  2018     Sea view\n",
+       "3  401255.608  1504.75  2015  No sea view\n",
+       "4  458674.256  1275.46  2009     Sea view"
+      ]
+     },
+     "execution_count": 66,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "view.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 75,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>price</th>\n",
+       "      <th>size</th>\n",
+       "      <th>year</th>\n",
+       "      <th>view</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>228581.528</td>\n",
+       "      <td>656.22</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>281626.336</td>\n",
+       "      <td>487.29</td>\n",
+       "      <td>2018</td>\n",
+       "      <td>Sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>401255.608</td>\n",
+       "      <td>1504.75</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>458674.256</td>\n",
+       "      <td>1275.46</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>Sea view</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "        price     size  year         view\n",
+       "1  228581.528   656.22  2009  No sea view\n",
+       "2  281626.336   487.29  2018     Sea view\n",
+       "3  401255.608  1504.75  2015  No sea view\n",
+       "4  458674.256  1275.46  2009     Sea view"
+      ]
+     },
+     "execution_count": 75,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "view.iloc[1:5]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 83,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "raw_data.dropna(inplace=True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 84,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "price    0\n",
+       "size     0\n",
+       "year     0\n",
+       "view     0\n",
+       "dtype: int64"
+      ]
+     },
+     "execution_count": 84,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.isnull().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 85,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>size</th>\n",
+       "      <th>year</th>\n",
+       "      <th>view</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>643.09</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>656.22</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>487.29</td>\n",
+       "      <td>2018</td>\n",
+       "      <td>Sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>1504.75</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>1275.46</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>Sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>95</th>\n",
+       "      <td>549.80</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>Sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>96</th>\n",
+       "      <td>1037.44</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>97</th>\n",
+       "      <td>1504.75</td>\n",
+       "      <td>2006</td>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>98</th>\n",
+       "      <td>648.29</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>No sea view</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>99</th>\n",
+       "      <td>705.29</td>\n",
+       "      <td>2006</td>\n",
+       "      <td>Sea view</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>100 rows × 3 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "       size  year         view\n",
+       "0    643.09  2015  No sea view\n",
+       "1    656.22  2009  No sea view\n",
+       "2    487.29  2018     Sea view\n",
+       "3   1504.75  2015  No sea view\n",
+       "4   1275.46  2009     Sea view\n",
+       "..      ...   ...          ...\n",
+       "95   549.80  2009     Sea view\n",
+       "96  1037.44  2009  No sea view\n",
+       "97  1504.75  2006  No sea view\n",
+       "98   648.29  2015  No sea view\n",
+       "99   705.29  2006     Sea view\n",
+       "\n",
+       "[100 rows x 3 columns]"
+      ]
+     },
+     "execution_count": 85,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.drop('price' , axis=1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 86,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "raw_data['new coloumn'] = raw_data['size']+ raw_data['year']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 87,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>price</th>\n",
+       "      <th>size</th>\n",
+       "      <th>year</th>\n",
+       "      <th>view</th>\n",
+       "      <th>new coloumn</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>234314.144</td>\n",
+       "      <td>643.09</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>No sea view</td>\n",
+       "      <td>2658.09</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>228581.528</td>\n",
+       "      <td>656.22</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>No sea view</td>\n",
+       "      <td>2665.22</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>281626.336</td>\n",
+       "      <td>487.29</td>\n",
+       "      <td>2018</td>\n",
+       "      <td>Sea view</td>\n",
+       "      <td>2505.29</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>401255.608</td>\n",
+       "      <td>1504.75</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>No sea view</td>\n",
+       "      <td>3519.75</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>458674.256</td>\n",
+       "      <td>1275.46</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>Sea view</td>\n",
+       "      <td>3284.46</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "        price     size  year         view  new coloumn\n",
+       "0  234314.144   643.09  2015  No sea view      2658.09\n",
+       "1  228581.528   656.22  2009  No sea view      2665.22\n",
+       "2  281626.336   487.29  2018     Sea view      2505.29\n",
+       "3  401255.608  1504.75  2015  No sea view      3519.75\n",
+       "4  458674.256  1275.46  2009     Sea view      3284.46"
+      ]
+     },
+     "execution_count": 87,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 88,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "raw_data['new coloumns'] = 10"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 94,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>price</th>\n",
+       "      <th>size</th>\n",
+       "      <th>year</th>\n",
+       "      <th>view</th>\n",
+       "      <th>new coloumn</th>\n",
+       "      <th>new coloumns</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>234314.144</td>\n",
+       "      <td>643.09</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>No sea view</td>\n",
+       "      <td>2658.09</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>228581.528</td>\n",
+       "      <td>656.22</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>No sea view</td>\n",
+       "      <td>2665.22</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>281626.336</td>\n",
+       "      <td>487.29</td>\n",
+       "      <td>2018</td>\n",
+       "      <td>Sea view</td>\n",
+       "      <td>2505.29</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>401255.608</td>\n",
+       "      <td>1504.75</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>No sea view</td>\n",
+       "      <td>3519.75</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>458674.256</td>\n",
+       "      <td>1275.46</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>Sea view</td>\n",
+       "      <td>3284.46</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "        price     size  year         view  new coloumn  new coloumns\n",
+       "0  234314.144   643.09  2015  No sea view      2658.09            10\n",
+       "1  228581.528   656.22  2009  No sea view      2665.22            10\n",
+       "2  281626.336   487.29  2018     Sea view      2505.29            10\n",
+       "3  401255.608  1504.75  2015  No sea view      3519.75            10\n",
+       "4  458674.256  1275.46  2009     Sea view      3284.46            10"
+      ]
+     },
+     "execution_count": 94,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 123,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "raw_data.iloc[0,-1]= 100"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 124,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>price</th>\n",
+       "      <th>size</th>\n",
+       "      <th>year</th>\n",
+       "      <th>view</th>\n",
+       "      <th>new coloumn</th>\n",
+       "      <th>new coloumns</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>100.000</td>\n",
+       "      <td>100.00</td>\n",
+       "      <td>100</td>\n",
+       "      <td>100</td>\n",
+       "      <td>100.00</td>\n",
+       "      <td>100</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>228581.528</td>\n",
+       "      <td>656.22</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>No sea view</td>\n",
+       "      <td>2665.22</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>281626.336</td>\n",
+       "      <td>487.29</td>\n",
+       "      <td>2018</td>\n",
+       "      <td>Sea view</td>\n",
+       "      <td>2505.29</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>401255.608</td>\n",
+       "      <td>1504.75</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>No sea view</td>\n",
+       "      <td>3519.75</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>458674.256</td>\n",
+       "      <td>1275.46</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>Sea view</td>\n",
+       "      <td>3284.46</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "        price     size  year         view  new coloumn  new coloumns\n",
+       "0     100.000   100.00   100          100       100.00           100\n",
+       "1  228581.528   656.22  2009  No sea view      2665.22            10\n",
+       "2  281626.336   487.29  2018     Sea view      2505.29            10\n",
+       "3  401255.608  1504.75  2015  No sea view      3519.75            10\n",
+       "4  458674.256  1275.46  2009     Sea view      3284.46            10"
+      ]
+     },
+     "execution_count": 124,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 118,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>price</th>\n",
+       "      <th>size</th>\n",
+       "      <th>year</th>\n",
+       "      <th>view</th>\n",
+       "      <th>new coloumn</th>\n",
+       "      <th>new coloumns</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>95</th>\n",
+       "      <td>252460.400</td>\n",
+       "      <td>549.80</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>Sea view</td>\n",
+       "      <td>2558.80</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>96</th>\n",
+       "      <td>310522.592</td>\n",
+       "      <td>1037.44</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>No sea view</td>\n",
+       "      <td>3046.44</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>97</th>\n",
+       "      <td>383635.568</td>\n",
+       "      <td>1504.75</td>\n",
+       "      <td>2006</td>\n",
+       "      <td>No sea view</td>\n",
+       "      <td>3510.75</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>98</th>\n",
+       "      <td>225145.248</td>\n",
+       "      <td>648.29</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>No sea view</td>\n",
+       "      <td>2663.29</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>99</th>\n",
+       "      <td>100.000</td>\n",
+       "      <td>100.00</td>\n",
+       "      <td>100</td>\n",
+       "      <td>100</td>\n",
+       "      <td>100.00</td>\n",
+       "      <td>100</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "         price     size  year         view  new coloumn  new coloumns\n",
+       "95  252460.400   549.80  2009     Sea view      2558.80            10\n",
+       "96  310522.592  1037.44  2009  No sea view      3046.44            10\n",
+       "97  383635.568  1504.75  2006  No sea view      3510.75            10\n",
+       "98  225145.248   648.29  2015  No sea view      2663.29            10\n",
+       "99     100.000   100.00   100          100       100.00           100"
+      ]
+     },
+     "execution_count": 118,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.tail(5)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 125,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "raw_data['bool view']= raw_data['view'].apply(lambda x:1 if x=='Sea view' else 0)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 127,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>price</th>\n",
+       "      <th>size</th>\n",
+       "      <th>year</th>\n",
+       "      <th>view</th>\n",
+       "      <th>new coloumn</th>\n",
+       "      <th>new coloumns</th>\n",
+       "      <th>bool view</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>100.000</td>\n",
+       "      <td>100.00</td>\n",
+       "      <td>100</td>\n",
+       "      <td>100</td>\n",
+       "      <td>100.00</td>\n",
+       "      <td>100</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>228581.528</td>\n",
+       "      <td>656.22</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>No sea view</td>\n",
+       "      <td>2665.22</td>\n",
+       "      <td>10</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>281626.336</td>\n",
+       "      <td>487.29</td>\n",
+       "      <td>2018</td>\n",
+       "      <td>Sea view</td>\n",
+       "      <td>2505.29</td>\n",
+       "      <td>10</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>401255.608</td>\n",
+       "      <td>1504.75</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>No sea view</td>\n",
+       "      <td>3519.75</td>\n",
+       "      <td>10</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>458674.256</td>\n",
+       "      <td>1275.46</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>Sea view</td>\n",
+       "      <td>3284.46</td>\n",
+       "      <td>10</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "        price     size  year         view  new coloumn  new coloumns  \\\n",
+       "0     100.000   100.00   100          100       100.00           100   \n",
+       "1  228581.528   656.22  2009  No sea view      2665.22            10   \n",
+       "2  281626.336   487.29  2018     Sea view      2505.29            10   \n",
+       "3  401255.608  1504.75  2015  No sea view      3519.75            10   \n",
+       "4  458674.256  1275.46  2009     Sea view      3284.46            10   \n",
+       "\n",
+       "   bool view  \n",
+       "0          0  \n",
+       "1          0  \n",
+       "2          1  \n",
+       "3          0  \n",
+       "4          1  "
+      ]
+     },
+     "execution_count": 127,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 130,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "raw_data['bool view 2']=raw_data['bool view'].apply(lambda x:True if x==1 else False)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 132,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>price</th>\n",
+       "      <th>size</th>\n",
+       "      <th>year</th>\n",
+       "      <th>view</th>\n",
+       "      <th>new coloumn</th>\n",
+       "      <th>new coloumns</th>\n",
+       "      <th>bool view</th>\n",
+       "      <th>bool view 2</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>281626.336</td>\n",
+       "      <td>487.29</td>\n",
+       "      <td>2018</td>\n",
+       "      <td>Sea view</td>\n",
+       "      <td>2505.29</td>\n",
+       "      <td>10</td>\n",
+       "      <td>1</td>\n",
+       "      <td>True</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>458674.256</td>\n",
+       "      <td>1275.46</td>\n",
+       "      <td>2009</td>\n",
+       "      <td>Sea view</td>\n",
+       "      <td>3284.46</td>\n",
+       "      <td>10</td>\n",
+       "      <td>1</td>\n",
+       "      <td>True</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5</th>\n",
+       "      <td>245050.280</td>\n",
+       "      <td>575.19</td>\n",
+       "      <td>2006</td>\n",
+       "      <td>Sea view</td>\n",
+       "      <td>2581.19</td>\n",
+       "      <td>10</td>\n",
+       "      <td>1</td>\n",
+       "      <td>True</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6</th>\n",
+       "      <td>265129.064</td>\n",
+       "      <td>570.89</td>\n",
+       "      <td>2015</td>\n",
+       "      <td>Sea view</td>\n",
+       "      <td>2585.89</td>\n",
+       "      <td>10</td>\n",
+       "      <td>1</td>\n",
+       "      <td>True</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>8</th>\n",
+       "      <td>331101.344</td>\n",
+       "      <td>682.26</td>\n",
+       "      <td>2018</td>\n",
+       "      <td>Sea view</td>\n",
+       "      <td>2700.26</td>\n",
+       "      <td>10</td>\n",
+       "      <td>1</td>\n",
+       "      <td>True</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "        price     size  year      view  new coloumn  new coloumns  bool view  \\\n",
+       "2  281626.336   487.29  2018  Sea view      2505.29            10          1   \n",
+       "4  458674.256  1275.46  2009  Sea view      3284.46            10          1   \n",
+       "5  245050.280   575.19  2006  Sea view      2581.19            10          1   \n",
+       "6  265129.064   570.89  2015  Sea view      2585.89            10          1   \n",
+       "8  331101.344   682.26  2018  Sea view      2700.26            10          1   \n",
+       "\n",
+       "   bool view 2  \n",
+       "2         True  \n",
+       "4         True  \n",
+       "5         True  \n",
+       "6         True  \n",
+       "8         True  "
+      ]
+     },
+     "execution_count": 132,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data[raw_data['bool view']==True].head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 133,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "raw_data.to_csv('output csv')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 134,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'{\"price\":{\"0\":100.0,\"1\":228581.528,\"2\":281626.336,\"3\":401255.608,\"4\":458674.256,\"5\":245050.28,\"6\":265129.064,\"7\":175716.48,\"8\":331101.344,\"9\":218630.608,\"10\":279555.096,\"11\":494778.992,\"12\":215472.104,\"13\":418753.008,\"14\":444192.008,\"15\":440201.616,\"16\":248337.6,\"17\":234178.16,\"18\":225451.984,\"19\":299416.976,\"20\":268125.08,\"21\":171795.24,\"22\":412569.472,\"23\":183459.488,\"24\":168047.264,\"25\":362519.72,\"26\":271793.312,\"27\":406852.304,\"28\":297760.44,\"29\":368988.432,\"30\":301635.728,\"31\":225452.32,\"32\":207742.248,\"33\":191486.896,\"34\":285223.176,\"35\":302000.92,\"36\":269225.92,\"37\":233493.208,\"38\":292965.216,\"39\":245747.2,\"40\":310045.712,\"41\":217468.224,\"42\":287350.0,\"43\":414682.648,\"44\":293044.496,\"45\":300061.48,\"46\":204302.976,\"47\":201778.048,\"48\":257828.416,\"49\":262423.504,\"50\":225656.12,\"51\":393069.76,\"52\":258637.008,\"53\":269523.056,\"54\":255629.16,\"55\":500681.128,\"56\":320345.52,\"57\":395242.096,\"58\":330677.128,\"59\":251332.592,\"60\":251188.824,\"61\":263311.696,\"62\":359674.44,\"63\":334938.872,\"64\":302393.384,\"65\":304587.272,\"66\":355251.2,\"67\":271726.752,\"68\":294582.944,\"69\":454512.76,\"70\":276875.632,\"71\":181587.576,\"72\":298926.496,\"73\":211724.096,\"74\":228313.024,\"75\":286161.6,\"76\":382120.152,\"77\":365863.936,\"78\":251560.04,\"79\":342988.456,\"80\":180307.216,\"81\":408637.816,\"82\":190909.056,\"83\":282683.544,\"84\":303597.216,\"85\":376253.808,\"86\":154282.128,\"87\":327252.112,\"88\":211904.536,\"89\":354512.112,\"90\":251140.656,\"91\":338078.168,\"92\":298170.88,\"93\":266684.248,\"94\":262477.856,\"95\":252460.4,\"96\":310522.592,\"97\":383635.568,\"98\":225145.248,\"99\":100.0},\"size\":{\"0\":100.0,\"1\":656.22,\"2\":487.29,\"3\":1504.75,\"4\":1275.46,\"5\":575.19,\"6\":570.89,\"7\":620.82,\"8\":682.26,\"9\":694.52,\"10\":1060.36,\"11\":1842.51,\"12\":694.52,\"13\":1009.25,\"14\":1300.96,\"15\":1379.72,\"16\":690.54,\"17\":623.94,\"18\":681.07,\"19\":1027.76,\"20\":620.71,\"21\":549.69,\"22\":1207.45,\"23\":518.38,\"24\":525.81,\"25\":1103.3,\"26\":570.89,\"27\":1334.1,\"28\":681.07,\"29\":1496.36,\"30\":1010.33,\"31\":681.07,\"32\":597.9,\"33\":525.81,\"34\":857.54,\"35\":622.97,\"36\":823.21,\"37\":570.25,\"38\":685.48,\"39\":698.29,\"40\":1021.95,\"41\":682.26,\"42\":823.21,\"43\":1334.1,\"44\":1060.36,\"45\":698.29,\"46\":633.19,\"47\":698.29,\"48\":633.19,\"49\":617.05,\"50\":647.5,\"51\":1021.95,\"52\":1021.95,\"53\":727.88,\"54\":647.5,\"55\":1508.84,\"56\":1032.06,\"57\":1283.85,\"58\":827.84,\"59\":569.17,\"60\":828.16,\"61\":698.5,\"62\":1205.62,\"63\":1021.95,\"64\":685.48,\"65\":827.09,\"66\":1009.25,\"67\":549.8,\"68\":685.48,\"69\":1496.36,\"70\":1021.95,\"71\":643.41,\"72\":656.22,\"73\":549.8,\"74\":685.48,\"75\":685.48,\"76\":1183.46,\"77\":1334.1,\"78\":682.26,\"79\":1188.62,\"80\":681.07,\"81\":1122.34,\"82\":681.07,\"83\":643.09,\"84\":685.48,\"85\":1009.25,\"86\":479.75,\"87\":1028.41,\"88\":601.66,\"89\":1236.93,\"90\":694.52,\"91\":1071.55,\"92\":694.52,\"93\":698.29,\"94\":698.29,\"95\":549.8,\"96\":1037.44,\"97\":1504.75,\"98\":648.29,\"99\":100.0},\"year\":{\"0\":100,\"1\":2009,\"2\":2018,\"3\":2015,\"4\":2009,\"5\":2006,\"6\":2015,\"7\":2006,\"8\":2018,\"9\":2009,\"10\":2009,\"11\":2009,\"12\":2015,\"13\":2018,\"14\":2006,\"15\":2006,\"16\":2018,\"17\":2006,\"18\":2006,\"19\":2018,\"20\":2015,\"21\":2015,\"22\":2015,\"23\":2015,\"24\":2009,\"25\":2018,\"26\":2018,\"27\":2015,\"28\":2015,\"29\":2015,\"30\":2006,\"31\":2006,\"32\":2009,\"33\":2015,\"34\":2018,\"35\":2018,\"36\":2006,\"37\":2006,\"38\":2018,\"39\":2015,\"40\":2015,\"41\":2018,\"42\":2009,\"43\":2009,\"44\":2018,\"45\":2015,\"46\":2009,\"47\":2006,\"48\":2015,\"49\":2015,\"50\":2015,\"51\":2015,\"52\":2009,\"53\":2006,\"54\":2015,\"55\":2018,\"56\":2018,\"57\":2015,\"58\":2006,\"59\":2015,\"60\":2018,\"61\":2015,\"62\":2015,\"63\":2009,\"64\":2015,\"65\":2015,\"66\":2006,\"67\":2015,\"68\":2018,\"69\":2006,\"70\":2009,\"71\":2006,\"72\":2015,\"73\":2015,\"74\":2018,\"75\":2018,\"76\":2018,\"77\":2006,\"78\":2009,\"79\":2006,\"80\":2006,\"81\":2015,\"82\":2006,\"83\":2018,\"84\":2018,\"85\":2018,\"86\":2006,\"87\":2009,\"88\":2018,\"89\":2018,\"90\":2018,\"91\":2015,\"92\":2015,\"93\":2018,\"94\":2006,\"95\":2009,\"96\":2009,\"97\":2006,\"98\":2015,\"99\":100},\"view\":{\"0\":100,\"1\":\"No sea view\",\"2\":\"Sea view\",\"3\":\"No sea view\",\"4\":\"Sea view\",\"5\":\"Sea view\",\"6\":\"Sea view\",\"7\":\"No sea view\",\"8\":\"Sea view\",\"9\":\"No sea view\",\"10\":\"No sea view\",\"11\":\"Sea view\",\"12\":\"No sea view\",\"13\":\"No sea view\",\"14\":\"Sea view\",\"15\":\"Sea view\",\"16\":\"No sea view\",\"17\":\"Sea view\",\"18\":\"No sea view\",\"19\":\"No sea view\",\"20\":\"Sea view\",\"21\":\"No sea view\",\"22\":\"Sea view\",\"23\":\"No sea view\",\"24\":\"No sea view\",\"25\":\"Sea view\",\"26\":\"Sea view\",\"27\":\"Sea view\",\"28\":\"Sea view\",\"29\":\"No sea view\",\"30\":\"No sea view\",\"31\":\"No sea view\",\"32\":\"No sea view\",\"33\":\"No sea view\",\"34\":\"No sea view\",\"35\":\"Sea view\",\"36\":\"No sea view\",\"37\":\"Sea view\",\"38\":\"Sea view\",\"39\":\"No sea view\",\"40\":\"No sea view\",\"41\":\"No sea view\",\"42\":\"Sea view\",\"43\":\"No sea view\",\"44\":\"No sea view\",\"45\":\"Sea view\",\"46\":\"No sea view\",\"47\":\"No sea view\",\"48\":\"Sea view\",\"49\":\"Sea view\",\"50\":\"No sea view\",\"51\":\"Sea view\",\"52\":\"No sea view\",\"53\":\"Sea view\",\"54\":\"Sea view\",\"55\":\"Sea view\",\"56\":\"No sea view\",\"57\":\"Sea view\",\"58\":\"Sea view\",\"59\":\"Sea view\",\"60\":\"No sea view\",\"61\":\"No sea view\",\"62\":\"No sea view\",\"63\":\"Sea view\",\"64\":\"Sea view\",\"65\":\"No sea view\",\"66\":\"Sea view\",\"67\":\"Sea view\",\"68\":\"Sea view\",\"69\":\"Sea view\",\"70\":\"No sea view\",\"71\":\"No sea view\",\"72\":\"Sea view\",\"73\":\"No sea view\",\"74\":\"No sea view\",\"75\":\"Sea view\",\"76\":\"Sea view\",\"77\":\"No sea view\",\"78\":\"Sea view\",\"79\":\"Sea view\",\"80\":\"No sea view\",\"81\":\"Sea view\",\"82\":\"No sea view\",\"83\":\"Sea view\",\"84\":\"Sea view\",\"85\":\"Sea view\",\"86\":\"No sea view\",\"87\":\"Sea view\",\"88\":\"No sea view\",\"89\":\"No sea view\",\"90\":\"No sea view\",\"91\":\"No sea view\",\"92\":\"Sea view\",\"93\":\"No sea view\",\"94\":\"Sea view\",\"95\":\"Sea view\",\"96\":\"No sea view\",\"97\":\"No sea view\",\"98\":\"No sea view\",\"99\":100},\"new coloumn\":{\"0\":100.0,\"1\":2665.22,\"2\":2505.29,\"3\":3519.75,\"4\":3284.46,\"5\":2581.19,\"6\":2585.89,\"7\":2626.82,\"8\":2700.26,\"9\":2703.52,\"10\":3069.36,\"11\":3851.51,\"12\":2709.52,\"13\":3027.25,\"14\":3306.96,\"15\":3385.72,\"16\":2708.54,\"17\":2629.94,\"18\":2687.07,\"19\":3045.76,\"20\":2635.71,\"21\":2564.69,\"22\":3222.45,\"23\":2533.38,\"24\":2534.81,\"25\":3121.3,\"26\":2588.89,\"27\":3349.1,\"28\":2696.07,\"29\":3511.36,\"30\":3016.33,\"31\":2687.07,\"32\":2606.9,\"33\":2540.81,\"34\":2875.54,\"35\":2640.97,\"36\":2829.21,\"37\":2576.25,\"38\":2703.48,\"39\":2713.29,\"40\":3036.95,\"41\":2700.26,\"42\":2832.21,\"43\":3343.1,\"44\":3078.36,\"45\":2713.29,\"46\":2642.19,\"47\":2704.29,\"48\":2648.19,\"49\":2632.05,\"50\":2662.5,\"51\":3036.95,\"52\":3030.95,\"53\":2733.88,\"54\":2662.5,\"55\":3526.84,\"56\":3050.06,\"57\":3298.85,\"58\":2833.84,\"59\":2584.17,\"60\":2846.16,\"61\":2713.5,\"62\":3220.62,\"63\":3030.95,\"64\":2700.48,\"65\":2842.09,\"66\":3015.25,\"67\":2564.8,\"68\":2703.48,\"69\":3502.36,\"70\":3030.95,\"71\":2649.41,\"72\":2671.22,\"73\":2564.8,\"74\":2703.48,\"75\":2703.48,\"76\":3201.46,\"77\":3340.1,\"78\":2691.26,\"79\":3194.62,\"80\":2687.07,\"81\":3137.34,\"82\":2687.07,\"83\":2661.09,\"84\":2703.48,\"85\":3027.25,\"86\":2485.75,\"87\":3037.41,\"88\":2619.66,\"89\":3254.93,\"90\":2712.52,\"91\":3086.55,\"92\":2709.52,\"93\":2716.29,\"94\":2704.29,\"95\":2558.8,\"96\":3046.44,\"97\":3510.75,\"98\":2663.29,\"99\":100.0},\"new coloumns\":{\"0\":100,\"1\":10,\"2\":10,\"3\":10,\"4\":10,\"5\":10,\"6\":10,\"7\":10,\"8\":10,\"9\":10,\"10\":10,\"11\":10,\"12\":10,\"13\":10,\"14\":10,\"15\":10,\"16\":10,\"17\":10,\"18\":10,\"19\":10,\"20\":10,\"21\":10,\"22\":10,\"23\":10,\"24\":10,\"25\":10,\"26\":10,\"27\":10,\"28\":10,\"29\":10,\"30\":10,\"31\":10,\"32\":10,\"33\":10,\"34\":10,\"35\":10,\"36\":10,\"37\":10,\"38\":10,\"39\":10,\"40\":10,\"41\":10,\"42\":10,\"43\":10,\"44\":10,\"45\":10,\"46\":10,\"47\":10,\"48\":10,\"49\":10,\"50\":10,\"51\":10,\"52\":10,\"53\":10,\"54\":10,\"55\":10,\"56\":10,\"57\":10,\"58\":10,\"59\":10,\"60\":10,\"61\":10,\"62\":10,\"63\":10,\"64\":10,\"65\":10,\"66\":10,\"67\":10,\"68\":10,\"69\":10,\"70\":10,\"71\":10,\"72\":10,\"73\":10,\"74\":10,\"75\":10,\"76\":10,\"77\":10,\"78\":10,\"79\":10,\"80\":10,\"81\":10,\"82\":10,\"83\":10,\"84\":10,\"85\":10,\"86\":10,\"87\":10,\"88\":10,\"89\":10,\"90\":10,\"91\":10,\"92\":10,\"93\":10,\"94\":10,\"95\":10,\"96\":10,\"97\":10,\"98\":10,\"99\":100},\"bool view\":{\"0\":0,\"1\":0,\"2\":1,\"3\":0,\"4\":1,\"5\":1,\"6\":1,\"7\":0,\"8\":1,\"9\":0,\"10\":0,\"11\":1,\"12\":0,\"13\":0,\"14\":1,\"15\":1,\"16\":0,\"17\":1,\"18\":0,\"19\":0,\"20\":1,\"21\":0,\"22\":1,\"23\":0,\"24\":0,\"25\":1,\"26\":1,\"27\":1,\"28\":1,\"29\":0,\"30\":0,\"31\":0,\"32\":0,\"33\":0,\"34\":0,\"35\":1,\"36\":0,\"37\":1,\"38\":1,\"39\":0,\"40\":0,\"41\":0,\"42\":1,\"43\":0,\"44\":0,\"45\":1,\"46\":0,\"47\":0,\"48\":1,\"49\":1,\"50\":0,\"51\":1,\"52\":0,\"53\":1,\"54\":1,\"55\":1,\"56\":0,\"57\":1,\"58\":1,\"59\":1,\"60\":0,\"61\":0,\"62\":0,\"63\":1,\"64\":1,\"65\":0,\"66\":1,\"67\":1,\"68\":1,\"69\":1,\"70\":0,\"71\":0,\"72\":1,\"73\":0,\"74\":0,\"75\":1,\"76\":1,\"77\":0,\"78\":1,\"79\":1,\"80\":0,\"81\":1,\"82\":0,\"83\":1,\"84\":1,\"85\":1,\"86\":0,\"87\":1,\"88\":0,\"89\":0,\"90\":0,\"91\":0,\"92\":1,\"93\":0,\"94\":1,\"95\":1,\"96\":0,\"97\":0,\"98\":0,\"99\":0},\"bool view 2\":{\"0\":false,\"1\":false,\"2\":true,\"3\":false,\"4\":true,\"5\":true,\"6\":true,\"7\":false,\"8\":true,\"9\":false,\"10\":false,\"11\":true,\"12\":false,\"13\":false,\"14\":true,\"15\":true,\"16\":false,\"17\":true,\"18\":false,\"19\":false,\"20\":true,\"21\":false,\"22\":true,\"23\":false,\"24\":false,\"25\":true,\"26\":true,\"27\":true,\"28\":true,\"29\":false,\"30\":false,\"31\":false,\"32\":false,\"33\":false,\"34\":false,\"35\":true,\"36\":false,\"37\":true,\"38\":true,\"39\":false,\"40\":false,\"41\":false,\"42\":true,\"43\":false,\"44\":false,\"45\":true,\"46\":false,\"47\":false,\"48\":true,\"49\":true,\"50\":false,\"51\":true,\"52\":false,\"53\":true,\"54\":true,\"55\":true,\"56\":false,\"57\":true,\"58\":true,\"59\":true,\"60\":false,\"61\":false,\"62\":false,\"63\":true,\"64\":true,\"65\":false,\"66\":true,\"67\":true,\"68\":true,\"69\":true,\"70\":false,\"71\":false,\"72\":true,\"73\":false,\"74\":false,\"75\":true,\"76\":true,\"77\":false,\"78\":true,\"79\":true,\"80\":false,\"81\":true,\"82\":false,\"83\":true,\"84\":true,\"85\":true,\"86\":false,\"87\":true,\"88\":false,\"89\":false,\"90\":false,\"91\":false,\"92\":true,\"93\":false,\"94\":true,\"95\":true,\"96\":false,\"97\":false,\"98\":false,\"99\":false}}'"
+      ]
+     },
+     "execution_count": 134,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.to_json()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 135,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'<table border=\"1\" class=\"dataframe\">\\n  <thead>\\n    <tr style=\"text-align: right;\">\\n      <th></th>\\n      <th>price</th>\\n      <th>size</th>\\n      <th>year</th>\\n      <th>view</th>\\n      <th>new coloumn</th>\\n      <th>new coloumns</th>\\n      <th>bool view</th>\\n      <th>bool view 2</th>\\n    </tr>\\n  </thead>\\n  <tbody>\\n    <tr>\\n      <th>0</th>\\n      <td>100.000</td>\\n      <td>100.00</td>\\n      <td>100</td>\\n      <td>100</td>\\n      <td>100.00</td>\\n      <td>100</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>1</th>\\n      <td>228581.528</td>\\n      <td>656.22</td>\\n      <td>2009</td>\\n      <td>No sea view</td>\\n      <td>2665.22</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>2</th>\\n      <td>281626.336</td>\\n      <td>487.29</td>\\n      <td>2018</td>\\n      <td>Sea view</td>\\n      <td>2505.29</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>3</th>\\n      <td>401255.608</td>\\n      <td>1504.75</td>\\n      <td>2015</td>\\n      <td>No sea view</td>\\n      <td>3519.75</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>4</th>\\n      <td>458674.256</td>\\n      <td>1275.46</td>\\n      <td>2009</td>\\n      <td>Sea view</td>\\n      <td>3284.46</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>5</th>\\n      <td>245050.280</td>\\n      <td>575.19</td>\\n      <td>2006</td>\\n      <td>Sea view</td>\\n      <td>2581.19</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>6</th>\\n      <td>265129.064</td>\\n      <td>570.89</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>2585.89</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>7</th>\\n      <td>175716.480</td>\\n      <td>620.82</td>\\n      <td>2006</td>\\n      <td>No sea view</td>\\n      <td>2626.82</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>8</th>\\n      <td>331101.344</td>\\n      <td>682.26</td>\\n      <td>2018</td>\\n      <td>Sea view</td>\\n      <td>2700.26</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>9</th>\\n      <td>218630.608</td>\\n      <td>694.52</td>\\n      <td>2009</td>\\n      <td>No sea view</td>\\n      <td>2703.52</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>10</th>\\n      <td>279555.096</td>\\n      <td>1060.36</td>\\n      <td>2009</td>\\n      <td>No sea view</td>\\n      <td>3069.36</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>11</th>\\n      <td>494778.992</td>\\n      <td>1842.51</td>\\n      <td>2009</td>\\n      <td>Sea view</td>\\n      <td>3851.51</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>12</th>\\n      <td>215472.104</td>\\n      <td>694.52</td>\\n      <td>2015</td>\\n      <td>No sea view</td>\\n      <td>2709.52</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>13</th>\\n      <td>418753.008</td>\\n      <td>1009.25</td>\\n      <td>2018</td>\\n      <td>No sea view</td>\\n      <td>3027.25</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>14</th>\\n      <td>444192.008</td>\\n      <td>1300.96</td>\\n      <td>2006</td>\\n      <td>Sea view</td>\\n      <td>3306.96</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>15</th>\\n      <td>440201.616</td>\\n      <td>1379.72</td>\\n      <td>2006</td>\\n      <td>Sea view</td>\\n      <td>3385.72</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>16</th>\\n      <td>248337.600</td>\\n      <td>690.54</td>\\n      <td>2018</td>\\n      <td>No sea view</td>\\n      <td>2708.54</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>17</th>\\n      <td>234178.160</td>\\n      <td>623.94</td>\\n      <td>2006</td>\\n      <td>Sea view</td>\\n      <td>2629.94</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>18</th>\\n      <td>225451.984</td>\\n      <td>681.07</td>\\n      <td>2006</td>\\n      <td>No sea view</td>\\n      <td>2687.07</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>19</th>\\n      <td>299416.976</td>\\n      <td>1027.76</td>\\n      <td>2018</td>\\n      <td>No sea view</td>\\n      <td>3045.76</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>20</th>\\n      <td>268125.080</td>\\n      <td>620.71</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>2635.71</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>21</th>\\n      <td>171795.240</td>\\n      <td>549.69</td>\\n      <td>2015</td>\\n      <td>No sea view</td>\\n      <td>2564.69</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>22</th>\\n      <td>412569.472</td>\\n      <td>1207.45</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>3222.45</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>23</th>\\n      <td>183459.488</td>\\n      <td>518.38</td>\\n      <td>2015</td>\\n      <td>No sea view</td>\\n      <td>2533.38</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>24</th>\\n      <td>168047.264</td>\\n      <td>525.81</td>\\n      <td>2009</td>\\n      <td>No sea view</td>\\n      <td>2534.81</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>25</th>\\n      <td>362519.720</td>\\n      <td>1103.30</td>\\n      <td>2018</td>\\n      <td>Sea view</td>\\n      <td>3121.30</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>26</th>\\n      <td>271793.312</td>\\n      <td>570.89</td>\\n      <td>2018</td>\\n      <td>Sea view</td>\\n      <td>2588.89</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>27</th>\\n      <td>406852.304</td>\\n      <td>1334.10</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>3349.10</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>28</th>\\n      <td>297760.440</td>\\n      <td>681.07</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>2696.07</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>29</th>\\n      <td>368988.432</td>\\n      <td>1496.36</td>\\n      <td>2015</td>\\n      <td>No sea view</td>\\n      <td>3511.36</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>30</th>\\n      <td>301635.728</td>\\n      <td>1010.33</td>\\n      <td>2006</td>\\n      <td>No sea view</td>\\n      <td>3016.33</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>31</th>\\n      <td>225452.320</td>\\n      <td>681.07</td>\\n      <td>2006</td>\\n      <td>No sea view</td>\\n      <td>2687.07</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>32</th>\\n      <td>207742.248</td>\\n      <td>597.90</td>\\n      <td>2009</td>\\n      <td>No sea view</td>\\n      <td>2606.90</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>33</th>\\n      <td>191486.896</td>\\n      <td>525.81</td>\\n      <td>2015</td>\\n      <td>No sea view</td>\\n      <td>2540.81</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>34</th>\\n      <td>285223.176</td>\\n      <td>857.54</td>\\n      <td>2018</td>\\n      <td>No sea view</td>\\n      <td>2875.54</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>35</th>\\n      <td>302000.920</td>\\n      <td>622.97</td>\\n      <td>2018</td>\\n      <td>Sea view</td>\\n      <td>2640.97</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>36</th>\\n      <td>269225.920</td>\\n      <td>823.21</td>\\n      <td>2006</td>\\n      <td>No sea view</td>\\n      <td>2829.21</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>37</th>\\n      <td>233493.208</td>\\n      <td>570.25</td>\\n      <td>2006</td>\\n      <td>Sea view</td>\\n      <td>2576.25</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>38</th>\\n      <td>292965.216</td>\\n      <td>685.48</td>\\n      <td>2018</td>\\n      <td>Sea view</td>\\n      <td>2703.48</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>39</th>\\n      <td>245747.200</td>\\n      <td>698.29</td>\\n      <td>2015</td>\\n      <td>No sea view</td>\\n      <td>2713.29</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>40</th>\\n      <td>310045.712</td>\\n      <td>1021.95</td>\\n      <td>2015</td>\\n      <td>No sea view</td>\\n      <td>3036.95</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>41</th>\\n      <td>217468.224</td>\\n      <td>682.26</td>\\n      <td>2018</td>\\n      <td>No sea view</td>\\n      <td>2700.26</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>42</th>\\n      <td>287350.000</td>\\n      <td>823.21</td>\\n      <td>2009</td>\\n      <td>Sea view</td>\\n      <td>2832.21</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>43</th>\\n      <td>414682.648</td>\\n      <td>1334.10</td>\\n      <td>2009</td>\\n      <td>No sea view</td>\\n      <td>3343.10</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>44</th>\\n      <td>293044.496</td>\\n      <td>1060.36</td>\\n      <td>2018</td>\\n      <td>No sea view</td>\\n      <td>3078.36</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>45</th>\\n      <td>300061.480</td>\\n      <td>698.29</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>2713.29</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>46</th>\\n      <td>204302.976</td>\\n      <td>633.19</td>\\n      <td>2009</td>\\n      <td>No sea view</td>\\n      <td>2642.19</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>47</th>\\n      <td>201778.048</td>\\n      <td>698.29</td>\\n      <td>2006</td>\\n      <td>No sea view</td>\\n      <td>2704.29</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>48</th>\\n      <td>257828.416</td>\\n      <td>633.19</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>2648.19</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>49</th>\\n      <td>262423.504</td>\\n      <td>617.05</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>2632.05</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>50</th>\\n      <td>225656.120</td>\\n      <td>647.50</td>\\n      <td>2015</td>\\n      <td>No sea view</td>\\n      <td>2662.50</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>51</th>\\n      <td>393069.760</td>\\n      <td>1021.95</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>3036.95</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>52</th>\\n      <td>258637.008</td>\\n      <td>1021.95</td>\\n      <td>2009</td>\\n      <td>No sea view</td>\\n      <td>3030.95</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>53</th>\\n      <td>269523.056</td>\\n      <td>727.88</td>\\n      <td>2006</td>\\n      <td>Sea view</td>\\n      <td>2733.88</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>54</th>\\n      <td>255629.160</td>\\n      <td>647.50</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>2662.50</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>55</th>\\n      <td>500681.128</td>\\n      <td>1508.84</td>\\n      <td>2018</td>\\n      <td>Sea view</td>\\n      <td>3526.84</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>56</th>\\n      <td>320345.520</td>\\n      <td>1032.06</td>\\n      <td>2018</td>\\n      <td>No sea view</td>\\n      <td>3050.06</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>57</th>\\n      <td>395242.096</td>\\n      <td>1283.85</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>3298.85</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>58</th>\\n      <td>330677.128</td>\\n      <td>827.84</td>\\n      <td>2006</td>\\n      <td>Sea view</td>\\n      <td>2833.84</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>59</th>\\n      <td>251332.592</td>\\n      <td>569.17</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>2584.17</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>60</th>\\n      <td>251188.824</td>\\n      <td>828.16</td>\\n      <td>2018</td>\\n      <td>No sea view</td>\\n      <td>2846.16</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>61</th>\\n      <td>263311.696</td>\\n      <td>698.50</td>\\n      <td>2015</td>\\n      <td>No sea view</td>\\n      <td>2713.50</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>62</th>\\n      <td>359674.440</td>\\n      <td>1205.62</td>\\n      <td>2015</td>\\n      <td>No sea view</td>\\n      <td>3220.62</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>63</th>\\n      <td>334938.872</td>\\n      <td>1021.95</td>\\n      <td>2009</td>\\n      <td>Sea view</td>\\n      <td>3030.95</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>64</th>\\n      <td>302393.384</td>\\n      <td>685.48</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>2700.48</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>65</th>\\n      <td>304587.272</td>\\n      <td>827.09</td>\\n      <td>2015</td>\\n      <td>No sea view</td>\\n      <td>2842.09</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>66</th>\\n      <td>355251.200</td>\\n      <td>1009.25</td>\\n      <td>2006</td>\\n      <td>Sea view</td>\\n      <td>3015.25</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>67</th>\\n      <td>271726.752</td>\\n      <td>549.80</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>2564.80</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>68</th>\\n      <td>294582.944</td>\\n      <td>685.48</td>\\n      <td>2018</td>\\n      <td>Sea view</td>\\n      <td>2703.48</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>69</th>\\n      <td>454512.760</td>\\n      <td>1496.36</td>\\n      <td>2006</td>\\n      <td>Sea view</td>\\n      <td>3502.36</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>70</th>\\n      <td>276875.632</td>\\n      <td>1021.95</td>\\n      <td>2009</td>\\n      <td>No sea view</td>\\n      <td>3030.95</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>71</th>\\n      <td>181587.576</td>\\n      <td>643.41</td>\\n      <td>2006</td>\\n      <td>No sea view</td>\\n      <td>2649.41</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>72</th>\\n      <td>298926.496</td>\\n      <td>656.22</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>2671.22</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>73</th>\\n      <td>211724.096</td>\\n      <td>549.80</td>\\n      <td>2015</td>\\n      <td>No sea view</td>\\n      <td>2564.80</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>74</th>\\n      <td>228313.024</td>\\n      <td>685.48</td>\\n      <td>2018</td>\\n      <td>No sea view</td>\\n      <td>2703.48</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>75</th>\\n      <td>286161.600</td>\\n      <td>685.48</td>\\n      <td>2018</td>\\n      <td>Sea view</td>\\n      <td>2703.48</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>76</th>\\n      <td>382120.152</td>\\n      <td>1183.46</td>\\n      <td>2018</td>\\n      <td>Sea view</td>\\n      <td>3201.46</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>77</th>\\n      <td>365863.936</td>\\n      <td>1334.10</td>\\n      <td>2006</td>\\n      <td>No sea view</td>\\n      <td>3340.10</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>78</th>\\n      <td>251560.040</td>\\n      <td>682.26</td>\\n      <td>2009</td>\\n      <td>Sea view</td>\\n      <td>2691.26</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>79</th>\\n      <td>342988.456</td>\\n      <td>1188.62</td>\\n      <td>2006</td>\\n      <td>Sea view</td>\\n      <td>3194.62</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>80</th>\\n      <td>180307.216</td>\\n      <td>681.07</td>\\n      <td>2006</td>\\n      <td>No sea view</td>\\n      <td>2687.07</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>81</th>\\n      <td>408637.816</td>\\n      <td>1122.34</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>3137.34</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>82</th>\\n      <td>190909.056</td>\\n      <td>681.07</td>\\n      <td>2006</td>\\n      <td>No sea view</td>\\n      <td>2687.07</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>83</th>\\n      <td>282683.544</td>\\n      <td>643.09</td>\\n      <td>2018</td>\\n      <td>Sea view</td>\\n      <td>2661.09</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>84</th>\\n      <td>303597.216</td>\\n      <td>685.48</td>\\n      <td>2018</td>\\n      <td>Sea view</td>\\n      <td>2703.48</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>85</th>\\n      <td>376253.808</td>\\n      <td>1009.25</td>\\n      <td>2018</td>\\n      <td>Sea view</td>\\n      <td>3027.25</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>86</th>\\n      <td>154282.128</td>\\n      <td>479.75</td>\\n      <td>2006</td>\\n      <td>No sea view</td>\\n      <td>2485.75</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>87</th>\\n      <td>327252.112</td>\\n      <td>1028.41</td>\\n      <td>2009</td>\\n      <td>Sea view</td>\\n      <td>3037.41</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>88</th>\\n      <td>211904.536</td>\\n      <td>601.66</td>\\n      <td>2018</td>\\n      <td>No sea view</td>\\n      <td>2619.66</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>89</th>\\n      <td>354512.112</td>\\n      <td>1236.93</td>\\n      <td>2018</td>\\n      <td>No sea view</td>\\n      <td>3254.93</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>90</th>\\n      <td>251140.656</td>\\n      <td>694.52</td>\\n      <td>2018</td>\\n      <td>No sea view</td>\\n      <td>2712.52</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>91</th>\\n      <td>338078.168</td>\\n      <td>1071.55</td>\\n      <td>2015</td>\\n      <td>No sea view</td>\\n      <td>3086.55</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>92</th>\\n      <td>298170.880</td>\\n      <td>694.52</td>\\n      <td>2015</td>\\n      <td>Sea view</td>\\n      <td>2709.52</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>93</th>\\n      <td>266684.248</td>\\n      <td>698.29</td>\\n      <td>2018</td>\\n      <td>No sea view</td>\\n      <td>2716.29</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>94</th>\\n      <td>262477.856</td>\\n      <td>698.29</td>\\n      <td>2006</td>\\n      <td>Sea view</td>\\n      <td>2704.29</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>95</th>\\n      <td>252460.400</td>\\n      <td>549.80</td>\\n      <td>2009</td>\\n      <td>Sea view</td>\\n      <td>2558.80</td>\\n      <td>10</td>\\n      <td>1</td>\\n      <td>True</td>\\n    </tr>\\n    <tr>\\n      <th>96</th>\\n      <td>310522.592</td>\\n      <td>1037.44</td>\\n      <td>2009</td>\\n      <td>No sea view</td>\\n      <td>3046.44</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>97</th>\\n      <td>383635.568</td>\\n      <td>1504.75</td>\\n      <td>2006</td>\\n      <td>No sea view</td>\\n      <td>3510.75</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>98</th>\\n      <td>225145.248</td>\\n      <td>648.29</td>\\n      <td>2015</td>\\n      <td>No sea view</td>\\n      <td>2663.29</td>\\n      <td>10</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n    <tr>\\n      <th>99</th>\\n      <td>100.000</td>\\n      <td>100.00</td>\\n      <td>100</td>\\n      <td>100</td>\\n      <td>100.00</td>\\n      <td>100</td>\\n      <td>0</td>\\n      <td>False</td>\\n    </tr>\\n  </tbody>\\n</table>'"
+      ]
+     },
+     "execution_count": 135,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "raw_data.to_html()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.9.12"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
